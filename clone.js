@@ -116,7 +116,7 @@ document.querySelectorAll(".scroll-btn").forEach(button => {
     });
 });
 
-fetchAndDisplayMovies();
+
 
 signupForm.addEventListener("submit", function(event){
     event.preventDefault(); 
