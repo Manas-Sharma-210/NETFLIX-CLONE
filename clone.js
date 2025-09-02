@@ -53,7 +53,6 @@ async function fetchAndDisplay(url, container) {
                             iframe.allow = "autoplay; encrypted-media";
                             iframe.style.border = "none";
 
-                          
                             wrapper.innerHTML = "";
                             wrapper.appendChild(iframe);
                         }
@@ -103,7 +102,6 @@ getStartedBtn.addEventListener("click", function(){
 // Scroll buttons
 document.querySelectorAll(".scroll-btn").forEach(button => {
     button.addEventListener("click", () => {
-        // Find the posters container in the same row as the clicked button
         const row = button.closest(".row");
         const movieCards = row.querySelector(".row-posters");
         const scrollAmount = 500;
@@ -116,8 +114,6 @@ document.querySelectorAll(".scroll-btn").forEach(button => {
     });
 });
 
-
-
 signupForm.addEventListener("submit", function(event){
     event.preventDefault(); 
     console.log("Email submitted."); 
@@ -127,3 +123,49 @@ signin.addEventListener("click", function(){
     console.log("Signin clicked!");
     emailInput.focus();
 });
+
+// === Translations ===
+const translations = {
+    en: {
+        heroTitle: "Unlimited movies, TV shows and more",
+        heroSubtitle: "Starts at ₹149. Cancel at any time.",
+        heroDesc: "Ready to watch? Enter your email to create or restart your membership.",
+        trending: "Trending Now",
+        footerNote: "Netflix Clone © 2025",
+        disclaimer: "This is a Netflix clone project for learning purposes. No data is collected."
+    },
+    hi: {
+        heroTitle: "अनलिमिटेड फ़िल्में, टीवी शो और बहुत कुछ",
+        heroSubtitle: "₹149 से शुरू। कभी भी रद्द करें।",
+        heroDesc: "देखने के लिए तैयार हैं? अपनी सदस्यता बनाने या पुनः प्रारंभ करने के लिए अपना ईमेल दर्ज करें।",
+        trending: "अभी ट्रेंडिंग",
+        footerNote: "नेटफ्लिक्स क्लोन © 2025",
+        disclaimer: "यह एक नेटफ्लिक्स क्लोन प्रोजेक्ट है, केवल सीखने के उद्देश्य से। कोई डेटा एकत्र नहीं किया जाता।"
+    }
+};
+
+// === Apply translations ===
+function applyTranslations(lang){
+    document.querySelector("h1").textContent = translations[lang].heroTitle;
+    document.querySelector("h2").textContent = translations[lang].heroSubtitle;
+    document.querySelector(".hero-content p").textContent = translations[lang].heroDesc;
+    document.querySelector("#trending h2").textContent = translations[lang].trending;
+
+    // footer note
+    const footerNote = document.querySelector(".footer-bottom p:first-of-type");
+    if (footerNote) footerNote.textContent = translations[lang].footerNote;
+
+    // disclaimer
+    const disclaimer = document.querySelector(".footer-bottom p:last-of-type");
+    if (disclaimer) disclaimer.textContent = translations[lang].disclaimer;
+}
+
+// === Language selector ===
+const languageSelect = document.querySelector(".language");
+languageSelect.addEventListener("change", () => {
+    const lang = languageSelect.value === "हिन्दी" ? "hi" : "en";
+    applyTranslations(lang);
+});
+
+// Default language
+applyTranslations("en");
