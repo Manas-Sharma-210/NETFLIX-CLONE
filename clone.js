@@ -12,6 +12,9 @@ const IMAGE_URL = "https://image.tmdb.org/t/p/w500";
 const trendingRow = document.querySelector("#trending .row-posters");
 const topRatedRow = document.querySelector("#toprated .row-posters");
 
+// Track the currently active trailer
+let activeIframe = null;
+
 async function fetchAndDisplay(url, container) {
     try {
         const res = await fetch(url);
@@ -32,48 +35,79 @@ async function fetchAndDisplay(url, container) {
                 wrapper.appendChild(img);
                 container.appendChild(wrapper);
 
-                let iframe = null;
-
-                // Mouse enter: load trailer
-                wrapper.addEventListener("mouseenter", async () => {
-                    if (iframe) return; // already showing
-
-                    try {
-                        const videoRes = await fetch(
-                            `${BASE_URL}/movie/${movie.id}/videos?api_key=${API_KEY}`
-                        );
-                        const videoData = await videoRes.json();
-                        const trailer = videoData.results.find(v => v.type === "Trailer");
-
-                        if (trailer) {
-                            iframe = document.createElement("iframe");
-                            iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1`;
-                            iframe.width = "250";
-                            iframe.height = "250";
-                            iframe.allow = "autoplay; encrypted-media";
-                            iframe.style.border = "none";
-
-                            wrapper.innerHTML = "";
-                            wrapper.appendChild(iframe);
-                        }
-                    } catch (err) {
-                        console.error("Trailer fetch failed:", err);
-                    }
-                });
-
-                // Mouse leave: restore poster
-                wrapper.addEventListener("mouseleave", () => {
-                    if (iframe) {
-                        wrapper.innerHTML = "";
-                        wrapper.appendChild(img);
-                        iframe = null;
-                    }
-                });
+                setupPoster(wrapper, img, movie); // use helper function
             }
         });
     } catch (error) {
         console.log("Error fetching data:", error);
     }
+}
+
+// === Poster Setup Function ===
+function setupPoster(wrapper, img, movie) {
+    let iframe = null;
+
+    const playTrailer = async () => {
+        if (iframe) return;
+
+        try {
+            const videoRes = await fetch(
+                `${BASE_URL}/movie/${movie.id}/videos?api_key=${API_KEY}`
+            );
+            const videoData = await videoRes.json();
+            const trailer = videoData.results.find(v => v.type === "Trailer");
+
+            if (trailer) {
+                iframe = document.createElement("iframe");
+                iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1`;
+                iframe.width = "250";
+                iframe.height = "250";
+                iframe.allow = "autoplay; encrypted-media";
+                iframe.style.border = "none";
+
+                // Stop previous trailer
+                if (activeIframe) {
+                    activeIframe.wrapper.innerHTML = "";
+                    activeIframe.wrapper.appendChild(activeIframe.img);
+                    activeIframe.iframe = null;
+                }
+
+                wrapper.innerHTML = "";
+                wrapper.appendChild(iframe);
+                activeIframe = { wrapper, img, iframe };
+            }
+        } catch (err) {
+            console.error("Trailer fetch failed:", err);
+        }
+    };
+
+    const stopTrailer = () => {
+        if (iframe) {
+            wrapper.innerHTML = "";
+            wrapper.appendChild(img);
+            iframe = null;
+            if (activeIframe && activeIframe.wrapper === wrapper) {
+                activeIframe = null;
+            }
+        }
+    };
+
+    // Desktop: hover play/stop
+    wrapper.addEventListener("mouseenter", playTrailer);
+    wrapper.addEventListener("mouseleave", stopTrailer);
+
+    // Mobile: click toggle
+    wrapper.addEventListener("click", () => {
+        if (iframe) stopTrailer();
+        else playTrailer();
+    });
+
+    // Stop trailer if clicking outside
+    document.addEventListener("click", (e) => {
+        if (activeIframe && !wrapper.contains(e.target)) {
+            stopTrailer();
+        }
+    });
 }
 
 // Calls
@@ -169,3 +203,4 @@ languageSelect.addEventListener("change", () => {
 
 // Default language
 applyTranslations("en");
+
